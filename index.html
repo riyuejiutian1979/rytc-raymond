@@ -129,9 +129,8 @@
         usdt: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
     };
 
-    // ABI 定义（只包含管理需要的函数）
+    // ABI 定义
     const TOKEN_ABI = [
-        "function owner() view returns (address)",
         "function transfer(address to, uint256 amount) returns (bool)",
         "function balanceOf(address) view returns (uint256)",
         "function decimals() view returns (uint8)"
@@ -162,14 +161,12 @@
         "function setGuildStake(uint256 guildId, uint256 stake)",
         "function changeGuildOwner(uint256 guildId, address newOwner)",
         "function setGuildActive(uint256 guildId, bool active)",
-        "function setDividendRate(uint256 _rate)",
-        "function depositRewardTokens(uint256 amount)"   // 需在公会合约中添加此函数，如果还没有，可以用ERC20的transfer代替
+        "function setDividendRate(uint256 _rate)"
     ];
 
     let provider, signer, userAddress;
     let tokenContract, idoContract, miningContract, teamContract, guildContract;
 
-    // 连接钱包
     document.getElementById('connectBtn').onclick = async () => {
         if (!window.ethereum) return alert('请安装 MetaMask');
         await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -177,29 +174,35 @@
         signer = provider.getSigner();
         userAddress = await signer.getAddress();
         document.getElementById('walletStatus').innerHTML = `连接地址: ${userAddress}`;
+        
         // 初始化合约
         tokenContract = new ethers.Contract(CONFIG.token, TOKEN_ABI, signer);
         idoContract = new ethers.Contract(CONFIG.ido, IDO_ABI, signer);
         miningContract = new ethers.Contract(CONFIG.mining, MINING_ABI, signer);
         teamContract = new ethers.Contract(CONFIG.team, TEAM_ABI, signer);
         guildContract = new ethers.Contract(CONFIG.guild, GUILD_ABI, signer);
-        // 验证 owner
-        const tokenOwner = await tokenContract.owner();
-        if (tokenOwner.toLowerCase() === userAddress.toLowerCase()) {
-            document.getElementById('ownerCheck').innerHTML = '✅ 你是合约所有者，管理员面板已解锁';
-            document.getElementById('adminPanel').style.display = 'block';
-            // 显示合约地址
-            document.getElementById('idoAddr').innerText = CONFIG.ido;
-            document.getElementById('miningAddr').innerText = CONFIG.mining;
-            document.getElementById('teamAddr').innerText = CONFIG.team;
-            document.getElementById('guildAddr').innerText = CONFIG.guild;
-        } else {
-            document.getElementById('ownerCheck').innerHTML = '⛔ 你不是合约所有者，无法使用管理功能';
-            document.getElementById('adminPanel').style.display = 'none';
+
+        // 使用 IDO 合约的 owner 验证管理员权限
+        try {
+            const idoOwner = await idoContract.owner();
+            if (idoOwner.toLowerCase() === userAddress.toLowerCase()) {
+                document.getElementById('ownerCheck').innerHTML = '✅ 你是合约所有者，管理员面板已解锁';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('idoAddr').innerText = CONFIG.ido;
+                document.getElementById('miningAddr').innerText = CONFIG.mining;
+                document.getElementById('teamAddr').innerText = CONFIG.team;
+                document.getElementById('guildAddr').innerText = CONFIG.guild;
+            } else {
+                document.getElementById('ownerCheck').innerHTML = '⛔ 你不是合约所有者，无法使用管理功能';
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        } catch (err) {
+            console.error(err);
+            document.getElementById('ownerCheck').innerHTML = '⚠️ 无法验证所有者，请检查合约地址是否正确';
         }
     };
 
-    // 通用转账（代币）
+    // 通用转账
     document.getElementById('doTransfer').onclick = async () => {
         let to = document.getElementById('transferTo').value.trim();
         let amountRYTC = parseFloat(document.getElementById('transferAmount').value);
@@ -211,7 +214,7 @@
         alert('转账成功');
     };
 
-    // IDO setTime
+    // IDO 管理
     document.getElementById('setTimeBtn').onclick = async () => {
         let start = document.getElementById('idoStart').value;
         let end = document.getElementById('idoEnd').value;
@@ -232,7 +235,6 @@
         if (!amount) return;
         let decimals = await tokenContract.decimals();
         let amountWei = ethers.utils.parseUnits(amount.toString(), decimals);
-        // 先授权
         let approveTx = await tokenContract.approve(CONFIG.ido, amountWei);
         await approveTx.wait();
         let tx = await idoContract.depositTokens(amountWei);
@@ -251,7 +253,6 @@
     document.getElementById('updateMinerStatusBtn').onclick = async () => {
         let typeId = parseInt(document.getElementById('minerTypeId').value);
         let enabled = document.getElementById('minerEnabled').value === 'true';
-        // 需要获取当前矿机参数，然后调用updateMinerType，这里简化：只修改enabled，其他参数保持原样
         let mt = await miningContract.minerTypes(typeId);
         let tx = await miningContract.updateMinerType(typeId, mt[0], mt[1], mt[2], mt[3], mt[4], mt[5], enabled);
         await tx.wait();
