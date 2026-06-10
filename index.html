@@ -3,339 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RYTC 管理员控制台</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui; background: #0a0f1e; color: #eef; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        h1 { margin-bottom: 20px; font-size: 28px; border-left: 4px solid #2a6df4; padding-left: 16px; }
-        .card { background: #141b2b; border-radius: 24px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a3a5a; }
-        .card h2 { margin-bottom: 16px; font-size: 20px; color: #7aa9ff; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
-        button { background: #2a6df4; border: none; color: white; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-weight: bold; margin-top: 8px; transition: 0.2s; }
-        button:hover { background: #1e54c4; }
-        input, select { background: #0f1622; border: 1px solid #2a3a5a; color: #eef; padding: 8px 12px; border-radius: 40px; width: 100%; margin: 8px 0; }
-        .status { background: #0f1622; border-radius: 20px; padding: 12px; font-family: monospace; font-size: 13px; margin-bottom: 16px; word-break: break-all; }
-        .danger { background: #8b3c3c; }
-        .warning { color: #ffaa66; }
-        hr { border-color: #2a3a5a; margin: 12px 0; }
-        .flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .address-input { font-family: monospace; font-size: 12px; }
+    <title>NFT生态建设 2025-2075 未来规划 | Raymond Chain</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#020617',
+                        secondary: '#7E22CE',
+                        accent: '#00E5FF',
+                        neon: '#FF00FF',
+                        dark: '#090E19',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+            }
+            .bg-glass {
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+            .border-glow {
+                box-shadow: 0 0 15px currentColor;
+            }
+            .timeline-line {
+                background: linear-gradient(to bottom, #00E5FF, #7E22CE, #FF00FF);
+            }
+        }
     </style>
 </head>
-<body>
-<div class="container">
-    <h1>🔐 RYTC 管理员控制台</h1>
-    <div class="card">
-        <div>🔌 连接钱包：</div>
-        <button id="connectBtn">连接 MetaMask</button>
-        <div id="walletStatus" class="status" style="margin-top: 10px;"></div>
-        <div id="ownerCheck" class="warning"></div>
-    </div>
-    <div id="adminPanel" style="display: none;">
-        <!-- 通用转账模块 -->
-        <div class="card">
-            <h2>💰 代币转账（向任意地址转入 RYTC）</h2>
-            <div class="flex">
-                <input type="text" id="transferTo" placeholder="接收地址" style="flex:2;">
-                <input type="number" id="transferAmount" placeholder="数量 (RYTC)" step="any" style="flex:1;">
-                <button id="doTransfer">转账</button>
+
+<body class="font-inter bg-primary text-gray-100 overflow-x-hidden">
+    <div id="particles-js" class="fixed inset-0 z-0 opacity-50"></div>
+
+    <!-- 顶部导航 -->
+    <header class="fixed w-full top-0 z-50">
+        <div class="bg-dark/80 bg-glass border-b border-white/10">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-accent to-neon flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">R</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gradient bg-gradient-to-r from-accent to-neon">
+                        RAYC NFT · 2025-2075
+                    </h1>
+                </div>
+                <a href="https://www.rytc.net/raymond-rayc/index.html" target="_blank" class="px-5 py-2 rounded-full border border-accent text-accent hover:bg-accent/10 transition-all">
+                    <i class="fa fa-home mr-1"></i> 首页
+                </a>
             </div>
         </div>
+    </header>
 
-        <div class="grid">
-            <!-- IDO 管理 -->
-            <div class="card">
-                <h2>📊 IDO 合约管理</h2>
-                <div>地址: <span id="idoAddr" class="address-input"></span></div>
-                <hr>
-                <div>开始时间戳: <input type="number" id="idoStart" placeholder="startTime"></div>
-                <div>结束时间戳: <input type="number" id="idoEnd" placeholder="endTime"></div>
-                <button id="setTimeBtn">修改时间</button>
-                <hr>
-                <div>兑换比例 (1 USDT = ? RYTC): <input type="number" id="idoRate" placeholder="rate"></div>
-                <button id="setRateBtn">修改比例</button>
-                <hr>
-                <div>向 IDO 存入 RYTC: <input type="number" id="idoDepositAmount" placeholder="数量 (RYTC)"></div>
-                <button id="idoDepositBtn">存入代币</button>
-                <hr>
-                <button id="idoWithdrawBtn" class="danger">提取剩余代币 (IDO结束后)</button>
+    <!-- 主体内容 -->
+    <main class="relative z-10 pt-28 pb-20">
+        <div class="container mx-auto px-4">
+
+            <!-- 标题区 -->
+            <div class="text-center mb-16">
+                <h1 class="text-[clamp(2rem,5vw,4rem)] font-bold leading-tight mb-6">
+                    <span class="text-gradient bg-gradient-to-r from-accent via-secondary to-neon">
+                        NFT 生态建设 · 未来规划愿景
+                    </span>
+                </h1>
+                <p class="text-gray-400 text-lg max-w-3xl mx-auto">
+                    构建横跨百年的数字价值体系 · 打造元宇宙 · Web4 · Web5 全生态 NFT 底层设施
+                </p>
+                <div class="mt-6 inline-block px-6 py-3 rounded-full border border-accent/30 bg-accent/5 text-accent">
+                    规划周期：2025 – 2075 年
+                </div>
             </div>
 
-            <!-- 挖矿管理 -->
-            <div class="card">
-                <h2>⛏️ 挖矿合约管理</h2>
-                <div>地址: <span id="miningAddr" class="address-input"></span></div>
-                <hr>
-                <div>矿机类型 ID (0-6): <input type="number" id="minerTypeId" placeholder="0~6"></div>
-                <div>启用/禁用: <select id="minerEnabled"><option value="true">启用</option><option value="false">禁用</option></select></div>
-                <button id="updateMinerStatusBtn">修改矿机状态</button>
-                <hr>
-                <div>每日领取上限: <input type="number" id="maxClaimTimes" placeholder="当前值"></div>
-                <button id="setMaxClaimBtn">修改</button>
-                <hr>
-                <div>向挖矿合约转入 RYTC: <input type="number" id="miningFundAmount" placeholder="数量"></div>
-                <button id="fundMiningBtn">转入奖励池</button>
-            </div>
+            <!-- 时间轴 -->
+            <div class="max-w-4xl mx-auto relative">
+                <div class="absolute left-1/2 -translate-x-1/2 w-1 h-full timeline-line rounded-full z-0"></div>
 
-            <!-- 团队合约管理 -->
-            <div class="card">
-                <h2>👥 团队奖励合约</h2>
-                <div>地址: <span id="teamAddr" class="address-input"></span></div>
-                <hr>
-                <div>修改级别奖励比例 (T1~T7, 基点: 10% = 1000)</div>
-                <div>级别: <select id="levelIndex"><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option><option value="4">T4</option><option value="5">T5</option><option value="6">T6</option><option value="7">T7</option></select></div>
-                <div>新比例: <input type="number" id="newRate" placeholder="基点"></div>
-                <button id="setLevelRateBtn">修改比例</button>
-                <hr>
-                <div>向团队合约转入 RYTC: <input type="number" id="teamFundAmount" placeholder="数量"></div>
-                <button id="fundTeamBtn">转入</button>
-            </div>
+                <!-- 2025-2030 -->
+                <div class="relative z-10 mb-16">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right mb-6 md:mb-0">
+                            <h3 class="text-2xl font-bold text-accent mb-2">2025 – 2030</h3>
+                            <p class="text-gray-300">NFT 基础生态搭建 · 数字身份体系 · 创作者经济底层</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-white font-bold z-10">1</div>
+                        <div class="md:w-1/2 md:pl-12 mt-6 md:mt-0">
+                            <div class="bg-dark/60 bg-glass p-6 rounded-2xl border border-accent/30">
+                                <h4 class="font-bold text-white mb-2">生态奠基期</h4>
+                                <p class="text-gray-400 text-sm">发行创世NFT、构建数字身份DID、搭建创作者铸造平台、建立全球节点支撑体系。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- 公会合约管理 -->
-            <div class="card">
-                <h2>🏛️ 公会分红合约</h2>
-                <div>地址: <span id="guildAddr" class="address-input"></span></div>
-                <hr>
-                <div>公会 ID (1-200): <input type="number" id="guildId" placeholder="公会ID"></div>
-                <div>设置质押总额 (RYTC): <input type="number" id="guildStake" placeholder="质押额"></div>
-                <button id="setGuildStakeBtn">设置质押额</button>
-                <hr>
-                <div>更换会长: <input type="text" id="newOwner" placeholder="新会长地址"></div>
-                <button id="changeGuildOwnerBtn">更换</button>
-                <hr>
-                <div>开关公会: <select id="guildActive"><option value="true">激活</option><option value="false">关闭</option></select></div>
-                <button id="setGuildActiveBtn">修改状态</button>
-                <hr>
-                <div>修改分红比例 (基点): <input type="number" id="dividendRate" placeholder="当前值"></div>
-                <button id="setDividendRateBtn">修改分红比例</button>
-                <hr>
-                <div>向公会合约转入 RYTC: <input type="number" id="guildFundAmount" placeholder="数量"></div>
-                <button id="fundGuildBtn">转入分红池</button>
+                <!-- 2030-2040 -->
+                <div class="relative z-10 mb-16">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right order-1 md:order-1">
+                            <div class="bg-dark/60 bg-glass p-6 rounded-2xl border border-secondary/30">
+                                <h4 class="font-bold text-white mb-2">元宇宙融合期</h4>
+                                <p class="text-gray-400 text-sm">NFT 全场景落地、虚拟土地、链上资产互通、跨链协议、AI+NFT 智能资产。</p>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-bold z-10 order-2">2</div>
+                        <div class="md:w-1/2 md:pl-12 mt-6 md:mt-0 order-3 md:order-3">
+                            <h3 class="text-2xl font-bold text-secondary mb-2">2030 – 2040</h3>
+                            <p class="text-gray-300">元宇宙生态 · 跨链互通 · AI 智能 NFT · 链上资产确权</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2040-2050 -->
+                <div class="relative z-10 mb-16">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right mb-6 md:mb-0">
+                            <h3 class="text-2xl font-bold text-neon mb-2">2040 – 2050</h3>
+                            <p class="text-gray-300">Web5 去中心化身份 · 脑机接口 · 数字永生基础</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-neon flex items-center justify-center text-white font-bold z-10">3</div>
+                        <div class="md:w-1/2 md:pl-12 mt-6 md:mt-0">
+                            <div class="bg-dark/60 bg-glass p-6 rounded-2xl border border-neon/30">
+                                <h4 class="font-bold text-white mb-2">去中心化超体时代</h4>
+                                <p class="text-gray-400 text-sm">NFT 成为数字永生载体、去中心化社交、脑机接口身份认证、全球分布式AI治理。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2050-2065 -->
+                <div class="relative z-10 mb-16">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right order-1 md:order-1">
+                            <div class="bg-dark/60 bg-glass p-6 rounded-2xl border border-blue-400/30">
+                                <h4 class="font-bold text-white mb-2">星际价值网络</h4>
+                                <p class="text-gray-400 text-sm">链上文明体系、星际数据确权、NFT 资产跨星球流通、去中心化文明治理。</p>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center text-white font-bold z-10 order-2">4</div>
+                        <div class="md:w-1/2 md:pl-12 mt-6 md:mt-0 order-3 md:order-3">
+                            <h3 class="text-2xl font-bold text-blue-400 mb-2">2050 – 2065</h3>
+                            <p class="text-gray-300">星际网络 · 数据确权 · 链上文明 · 资产跨星球流通</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2065-2075 -->
+                <div class="relative z-10">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right mb-6 md:mb-0">
+                            <h3 class="text-2xl font-bold text-white mb-2">2065 – 2075</h3>
+                            <p class="text-gray-300">终极生态 · 永恒价值 · 全宇宙去中心化共识</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-accent to-neon flex items-center justify-center text-white font-bold z-10">5</div>
+                        <div class="md:w-1/2 md:pl-12 mt-6 md:mt-0">
+                            <div class="bg-dark/60 bg-glass p-6 rounded-2xl border border-white/20">
+                                <h4 class="font-bold text-white mb-2">永恒生态 · 终极愿景</h4>
+                                <p class="text-gray-400 text-sm">RAYC NFT 成为全宇宙通用价值凭证，数字身份永久确权，构建去中心化、自治、永恒的链上文明。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </main>
 
-<script>
-    // ==================== 合约地址配置 ====================
-    const CONFIG = {
-        token: "0xfab2Cc41282E20f98d1470802Ac51450EB8E9906",
-        ido: "0xf712A963E1628C70f1Cb5Ac2b0fe388d665A7588",
-        mining: "0x737E07277CcFF609EC3Ff9FabE5AD2Ab509D97F5",
-        team: "0xF11Da2FAa09aB297A08a5833D5A3ec7A35326983",
-        guild: "0x8EC9689CF57F83e5Eece439bD34F0f7010DA3a77",
-        usdt: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
-    };
+    <!-- 底部（和你主站完全一样） -->
+    <footer class="bg-dark pt-20 pb-10 border-t border-gray-800 relative z-10">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-10 mb-10">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-secondary to-accent flex items-center justify-center">
+                            <span class="text-white text-xl font-bold">R</span>
+                        </div>
+                        <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 text-gradient">Raymond Chain</h2>
+                    </div>
+                    <p class="text-gray-400">构建未来区块链生态，创造数字价值新时代<br>Build future blockchain ecosystem, create new digital value era.</p>
+                </div>
 
-    // ABI 定义
-    const TOKEN_ABI = [
-        "function transfer(address to, uint256 amount) returns (bool)",
-        "function balanceOf(address) view returns (uint256)",
-        "function decimals() view returns (uint8)"
-    ];
-    const IDO_ABI = [
-        "function owner() view returns (address)",
-        "function setTime(uint256 start, uint256 end)",
-        "function setRate(uint256 _rate)",
-        "function depositTokens(uint256 amount)",
-        "function withdrawRemainingTokens()",
-        "function startTime() view returns (uint256)",
-        "function endTime() view returns (uint256)",
-        "function rate() view returns (uint256)"
-    ];
-    const MINING_ABI = [
-        "function owner() view returns (address)",
-        "function updateMinerType(uint256 id, uint32 daysDuration, uint256 minStake, uint256 maxStake, uint256 totalRatio, uint256 maxPurchases, uint256 totalQtyLimit, bool enabled)",
-        "function setMaxDailyClaimTimes(uint256 _max)",
-        "function minerTypes(uint256) view returns (uint32,uint256,uint256,uint256,uint256,uint256,uint256,bool)"
-    ];
-    const TEAM_ABI = [
-        "function owner() view returns (address)",
-        "function setLevelRewardRate(uint256 levelIndex, uint256 rate)",
-        "function depositRewardTokens(uint256 amount)"
-    ];
-    const GUILD_ABI = [
-        "function owner() view returns (address)",
-        "function setGuildStake(uint256 guildId, uint256 stake)",
-        "function changeGuildOwner(uint256 guildId, address newOwner)",
-        "function setGuildActive(uint256 guildId, bool active)",
-        "function setDividendRate(uint256 _rate)"
-    ];
+                <div>
+                    <h3 class="text-lg font-bold mb-4">快速链接 / Quick Links</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-accent">首页 / Home</a></li>
+                        <li><a href="#" class="hover:text-accent">关于我们 / About Us</a></li>
+                        <li><a href="#" class="hover:text-accent">RAYC生态 / Ecosystem</a></li>
+                        <li><a href="#" class="hover:text-accent">技术优势 / Tech</a></li>
+                    </ul>
+                </div>
 
-    let provider, signer, userAddress;
-    let tokenContract, idoContract, miningContract, teamContract, guildContract;
+                <div>
+                    <h3 class="text-lg font-bold mb-4">资源中心 / Resources</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" target="_blank" class="hover:text-accent">白皮书</a></li>
+                        <li><a href="#" class="hover:text-accent">开发者文档</a></li>
+                        <li><a href="#" class="hover:text-accent">新闻动态</a></li>
+                        <li><a href="#" class="hover:text-accent">FAQ</a></li>
+                    </ul>
+                </div>
 
-    document.getElementById('connectBtn').onclick = async () => {
-        if (!window.ethereum) return alert('请安装 MetaMask');
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        userAddress = await signer.getAddress();
-        document.getElementById('walletStatus').innerHTML = `连接地址: ${userAddress}`;
-        
-        // 初始化合约
-        tokenContract = new ethers.Contract(CONFIG.token, TOKEN_ABI, signer);
-        idoContract = new ethers.Contract(CONFIG.ido, IDO_ABI, signer);
-        miningContract = new ethers.Contract(CONFIG.mining, MINING_ABI, signer);
-        teamContract = new ethers.Contract(CONFIG.team, TEAM_ABI, signer);
-        guildContract = new ethers.Contract(CONFIG.guild, GUILD_ABI, signer);
+                <div>
+                    <h3 class="text-lg font-bold mb-4">联系我们 / Contact</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fa fa-envelope text-accent"></i> contact@raymondchain.com</li>
+                        <li class="flex items-center gap-2"><i class="fa fa-map-marker text-accent"></i> 全球区块链科技园区</li>
+                    </ul>
+                </div>
+            </div>
 
-        // 使用 IDO 合约的 owner 验证管理员权限
-        try {
-            const idoOwner = await idoContract.owner();
-            if (idoOwner.toLowerCase() === userAddress.toLowerCase()) {
-                document.getElementById('ownerCheck').innerHTML = '✅ 你是合约所有者，管理员面板已解锁';
-                document.getElementById('adminPanel').style.display = 'block';
-                document.getElementById('idoAddr').innerText = CONFIG.ido;
-                document.getElementById('miningAddr').innerText = CONFIG.mining;
-                document.getElementById('teamAddr').innerText = CONFIG.team;
-                document.getElementById('guildAddr').innerText = CONFIG.guild;
-            } else {
-                document.getElementById('ownerCheck').innerHTML = '⛔ 你不是合约所有者，无法使用管理功能';
-                document.getElementById('adminPanel').style.display = 'none';
-            }
-        } catch (err) {
-            console.error(err);
-            document.getElementById('ownerCheck').innerHTML = '⚠️ 无法验证所有者，请检查合约地址是否正确';
-        }
-    };
+            <hr class="border-gray-800 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-500"><i class="fa fa-twitter text-white"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-purple-500"><i class="fa fa-telegram text-white"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-red-500"><i class="fa fa-youtube-play text-white"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-600"><i class="fa fa-linkedin text-white"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-green-500"><i class="fa fa-weixin text-white"></i></a>
+                </div>
+                <p class="text-gray-500 text-sm">© 2025 Raymond Chain. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
 
-    // 通用转账
-    document.getElementById('doTransfer').onclick = async () => {
-        let to = document.getElementById('transferTo').value.trim();
-        let amountRYTC = parseFloat(document.getElementById('transferAmount').value);
-        if (!to || !amountRYTC) return alert('填写完整');
-        let decimals = await tokenContract.decimals();
-        let amountWei = ethers.utils.parseUnits(amountRYTC.toString(), decimals);
-        let tx = await tokenContract.transfer(to, amountWei);
-        await tx.wait();
-        alert('转账成功');
-    };
-
-    // IDO 管理
-    document.getElementById('setTimeBtn').onclick = async () => {
-        let start = document.getElementById('idoStart').value;
-        let end = document.getElementById('idoEnd').value;
-        if (!start || !end) return alert('填写时间戳');
-        let tx = await idoContract.setTime(start, end);
-        await tx.wait();
-        alert('时间修改成功');
-    };
-    document.getElementById('setRateBtn').onclick = async () => {
-        let rate = document.getElementById('idoRate').value;
-        if (!rate) return;
-        let tx = await idoContract.setRate(rate);
-        await tx.wait();
-        alert('比例修改成功');
-    };
-    document.getElementById('idoDepositBtn').onclick = async () => {
-        let amount = parseFloat(document.getElementById('idoDepositAmount').value);
-        if (!amount) return;
-        let decimals = await tokenContract.decimals();
-        let amountWei = ethers.utils.parseUnits(amount.toString(), decimals);
-        let approveTx = await tokenContract.approve(CONFIG.ido, amountWei);
-        await approveTx.wait();
-        let tx = await idoContract.depositTokens(amountWei);
-        await tx.wait();
-        alert('存入成功');
-    };
-    document.getElementById('idoWithdrawBtn').onclick = async () => {
-        if (confirm('确定提取IDO合约剩余代币？')) {
-            let tx = await idoContract.withdrawRemainingTokens();
-            await tx.wait();
-            alert('提取成功');
-        }
-    };
-
-    // 挖矿管理
-    document.getElementById('updateMinerStatusBtn').onclick = async () => {
-        let typeId = parseInt(document.getElementById('minerTypeId').value);
-        let enabled = document.getElementById('minerEnabled').value === 'true';
-        let mt = await miningContract.minerTypes(typeId);
-        let tx = await miningContract.updateMinerType(typeId, mt[0], mt[1], mt[2], mt[3], mt[4], mt[5], enabled);
-        await tx.wait();
-        alert('修改成功');
-    };
-    document.getElementById('setMaxClaimBtn').onclick = async () => {
-        let max = parseInt(document.getElementById('maxClaimTimes').value);
-        if (!max) return;
-        let tx = await miningContract.setMaxDailyClaimTimes(max);
-        await tx.wait();
-        alert('设置成功');
-    };
-    document.getElementById('fundMiningBtn').onclick = async () => {
-        let amount = parseFloat(document.getElementById('miningFundAmount').value);
-        if (!amount) return;
-        let decimals = await tokenContract.decimals();
-        let amountWei = ethers.utils.parseUnits(amount.toString(), decimals);
-        let tx = await tokenContract.transfer(CONFIG.mining, amountWei);
-        await tx.wait();
-        alert('转入挖矿合约成功');
-    };
-
-    // 团队合约
-    document.getElementById('setLevelRateBtn').onclick = async () => {
-        let levelIdx = parseInt(document.getElementById('levelIndex').value);
-        let rate = parseInt(document.getElementById('newRate').value);
-        if (!rate) return;
-        let tx = await teamContract.setLevelRewardRate(levelIdx, rate);
-        await tx.wait();
-        alert('比例修改成功');
-    };
-    document.getElementById('fundTeamBtn').onclick = async () => {
-        let amount = parseFloat(document.getElementById('teamFundAmount').value);
-        if (!amount) return;
-        let decimals = await tokenContract.decimals();
-        let amountWei = ethers.utils.parseUnits(amount.toString(), decimals);
-        let tx = await tokenContract.transfer(CONFIG.team, amountWei);
-        await tx.wait();
-        alert('转入团队合约成功');
-    };
-
-    // 公会合约
-    document.getElementById('setGuildStakeBtn').onclick = async () => {
-        let guildId = parseInt(document.getElementById('guildId').value);
-        let stake = parseFloat(document.getElementById('guildStake').value);
-        if (!guildId || !stake) return;
-        let decimals = await tokenContract.decimals();
-        let stakeWei = ethers.utils.parseUnits(stake.toString(), decimals);
-        let tx = await guildContract.setGuildStake(guildId, stakeWei);
-        await tx.wait();
-        alert('质押额设置成功');
-    };
-    document.getElementById('changeGuildOwnerBtn').onclick = async () => {
-        let guildId = parseInt(document.getElementById('guildId').value);
-        let newOwner = document.getElementById('newOwner').value.trim();
-        if (!guildId || !newOwner) return;
-        let tx = await guildContract.changeGuildOwner(guildId, newOwner);
-        await tx.wait();
-        alert('会长更换成功');
-    };
-    document.getElementById('setGuildActiveBtn').onclick = async () => {
-        let guildId = parseInt(document.getElementById('guildId').value);
-        let active = document.getElementById('guildActive').value === 'true';
-        let tx = await guildContract.setGuildActive(guildId, active);
-        await tx.wait();
-        alert('公会状态修改成功');
-    };
-    document.getElementById('setDividendRateBtn').onclick = async () => {
-        let rate = parseInt(document.getElementById('dividendRate').value);
-        if (!rate) return;
-        let tx = await guildContract.setDividendRate(rate);
-        await tx.wait();
-        alert('分红比例修改成功');
-    };
-    document.getElementById('fundGuildBtn').onclick = async () => {
-        let amount = parseFloat(document.getElementById('guildFundAmount').value);
-        if (!amount) return;
-        let decimals = await tokenContract.decimals();
-        let amountWei = ethers.utils.parseUnits(amount.toString(), decimals);
-        let tx = await tokenContract.transfer(CONFIG.guild, amountWei);
-        await tx.wait();
-        alert('转入公会合约成功');
-    };
-</script>
+    <script>
+        particlesJS("particles-js", {
+            particles: { number: { value: 70 }, color: { value: "#00E5FF" }, opacity: { value: 0.4 }, size: { value: 2 },
+                line_linked: { enable: true, distance: 120, color: "#7E22CE", opacity: 0.2, width: 1 },
+                move: { enable: true, speed: 1, random: true, out_mode: "out" }
+            },
+            interactivity: { events: { onhover: { enable: true, mode: "grab" } } }
+        });
+    </script>
 </body>
 </html>
